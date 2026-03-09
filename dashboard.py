@@ -205,7 +205,7 @@ st.subheader('✅ Kesimpulan')
 col_kesimpulan1, col_kesimpulan2 = st.columns(2)
 
 with col_kesimpulan1:
-    st.markdown('**Pertanyaan 1: Pengaruh Musim & Cuaca**')
+    st.markdown('**Pertanyaan 1**')
     st.markdown("""
     - **Musim Fall** dan **cuaca Clear** secara konsisten menghasilkan jumlah penyewaan tertinggi sepanjang 2011–2012.
     - Kondisi cuaca buruk (**Light Rain/Snow**) terbukti menurunkan penyewaan secara drastis hingga **63%** dibanding cuaca Clear.
@@ -216,7 +216,7 @@ with col_kesimpulan1:
     """)
 
 with col_kesimpulan2:
-    st.markdown('**Pertanyaan 2: Pola Jam & Hari**')
+    st.markdown('**Pertanyaan 2**')
     st.markdown("""
     - Penyewaan memuncak pada pukul **08.00** dan **17.00–18.00** yang mencerminkan pola penggunaan sepeda sebagai moda transportasi **komuter**.
     - **Hari Jumat** mencatat penyewaan tertinggi dalam seminggu.
