@@ -23,67 +23,35 @@ st.title('🚴 Bike Sharing Dashboard')
 st.markdown('**Nama:** Arel Lafito Dinoris | **ID:** areldinoris')
 st.markdown('---')
 
-# ── SIDEBAR FILTER ──
-st.sidebar.header('🔍 Filter Data')
-
-# Filter tahun
-year_options = sorted(day_df['yr'].unique())
-selected_year = st.sidebar.selectbox('Pilih Tahun', year_options)
-
-# Filter date range
-min_date = day_df['dteday'].min()
-max_date = day_df['dteday'].max()
-start_date, end_date = st.sidebar.date_input(
-    'Pilih Rentang Tanggal',
-    value=[min_date, max_date],
-    min_value=min_date,
-    max_value=max_date
-)
-
-# Terapkan filter ke day_df
-filtered_day = day_df[
-    (day_df['yr'] == selected_year) &
-    (day_df['dteday'] >= pd.Timestamp(start_date)) &
-    (day_df['dteday'] <= pd.Timestamp(end_date))
-]
-
-# Terapkan filter ke hour_df
-filtered_hour = hour_df[
-    (hour_df['yr'] == selected_year) &
-    (hour_df['dteday'] >= pd.Timestamp(start_date)) &
-    (hour_df['dteday'] <= pd.Timestamp(end_date))
-]
-
-st.sidebar.markdown(f'**Total data:** {len(filtered_day)} hari')
-
 # ── METRIK RINGKASAN ──
-col_m1, col_m2, col_m3 = st.columns(3)
-col_m1.metric('Total Penyewaan', f"{filtered_day['cnt'].sum():,}")
-col_m2.metric('Rata-rata/Hari', f"{filtered_day['cnt'].mean():.0f}")
-col_m3.metric('Penyewaan Tertinggi', f"{filtered_day['cnt'].max():,}")
+col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+col_m1.metric('Total Penyewaan (2011-2012)', f"{day_df['cnt'].sum():,}")
+col_m2.metric('Rata-rata/Hari', f"{day_df['cnt'].mean():.0f}")
+col_m3.metric('Penyewaan Tertinggi', f"{day_df['cnt'].max():,}")
+col_m4.metric('Rata-rata/Jam', f"{hour_df['cnt'].mean():.0f}")
 
 st.markdown('---')
 
-# ── PERTANYAAN 1: Musim & Cuaca (Seperti di IPYNB) ──
+# ── PERTANYAAN 1: Musim & Cuaca (Persis seperti IPYNB) ──
 st.subheader('📊 Pertanyaan 1: Pengaruh Musim & Cuaca terhadap Penyewaan')
 
 fig1, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 # Plot musim
 season_order = ['Spring', 'Summer', 'Fall', 'Winter']
-season_avg = filtered_day.groupby('season')['cnt'].mean().reindex(season_order).dropna()
+season_avg = day_df.groupby('season')['cnt'].mean().reindex(season_order)
 axes[0].bar(season_avg.index, season_avg.values,
             color=['#4CAF50', '#FFC107', '#F44336', '#2196F3'])
-axes[0].set_title(f'Rata-rata Penyewaan per Musim ({selected_year})', fontsize=13)
+axes[0].set_title('Rata-rata Penyewaan per Musim (2011-2012)', fontsize=13)
 axes[0].set_xlabel('Musim')
 axes[0].set_ylabel('Rata-rata Penyewaan')
 for i, v in enumerate(season_avg.values):
     axes[0].text(i, v + 50, str(round(v)), ha='center', fontsize=10)
 
 # Plot cuaca
-weather_avg = filtered_day.groupby('weathersit')['cnt'].mean().sort_values(ascending=False)
+weather_avg = day_df.groupby('weathersit')['cnt'].mean().sort_values(ascending=False)
 axes[1].bar(weather_avg.index, weather_avg.values, color='#42A5F5')
-axes[1].set_title(f'Rata-rata Penyewaan per Kondisi Cuaca ({selected_year})', fontsize=13)
+axes[1].set_title('Rata-rata Penyewaan per Kondisi Cuaca (2011-2012)', fontsize=13)
 axes[1].set_xlabel('Kondisi Cuaca')
 axes[1].set_ylabel('Rata-rata Penyewaan')
 axes[1].tick_params(axis='x', rotation=15)
@@ -98,15 +66,15 @@ st.info('💡 Musim Fall dan cuaca Clear menghasilkan penyewaan tertinggi. Cuaca
 
 st.markdown('---')
 
-# ── PERTANYAAN 2: Jam & Hari (Seperti di IPYNB) ──
+# ── PERTANYAAN 2: Jam & Hari (Persis seperti IPYNB) ──
 st.subheader('⏰ Pertanyaan 2: Pola Jam dan Hari dalam Seminggu')
 
 fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
 
 # Plot per jam
-hour_avg = filtered_hour.groupby('hr')['cnt'].mean()
+hour_avg = hour_df.groupby('hr')['cnt'].mean()
 axes2[0].plot(hour_avg.index, hour_avg.values, marker='o', color='#E53935', linewidth=2)
-axes2[0].set_title(f'Rata-rata Penyewaan per Jam ({selected_year})', fontsize=13)
+axes2[0].set_title('Rata-rata Penyewaan per Jam (2011-2012)', fontsize=13)
 axes2[0].set_xlabel('Jam')
 axes2[0].set_ylabel('Rata-rata Penyewaan')
 axes2[0].set_xticks(range(0, 24))
@@ -116,9 +84,9 @@ axes2[0].legend()
 
 # Plot per hari
 day_map = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
-weekday_avg = filtered_hour.groupby('weekday')['cnt'].mean().rename(index=day_map)
+weekday_avg = hour_df.groupby('weekday')['cnt'].mean().rename(index=day_map)
 axes2[1].bar(weekday_avg.index, weekday_avg.values, color='#AB47BC')
-axes2[1].set_title(f'Rata-rata Penyewaan per Hari ({selected_year})', fontsize=13)
+axes2[1].set_title('Rata-rata Penyewaan per Hari (2011-2012)', fontsize=13)
 axes2[1].set_xlabel('Hari')
 axes2[1].set_ylabel('Rata-rata Penyewaan')
 for i, v in enumerate(weekday_avg.values):
