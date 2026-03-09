@@ -194,7 +194,37 @@ axes3[1, 1].grid(alpha=0.3)
 plt.tight_layout()
 st.pyplot(fig3)
 plt.close(fig3)
-
     
+st.markdown('---')
+
+# ================================================================
+# KESIMPULAN
+# ================================================================
+st.subheader('✅ Kesimpulan')
+
+col_kesimpulan1, col_kesimpulan2 = st.columns(2)
+
+with col_kesimpulan1:
+    st.markdown('**Pertanyaan 1: Pengaruh Musim & Cuaca**')
+    st.markdown("""
+    - **Musim Fall** dan **cuaca Clear** secara konsisten menghasilkan jumlah penyewaan tertinggi sepanjang 2011–2012.
+    - Kondisi cuaca buruk (**Light Rain/Snow**) terbukti menurunkan penyewaan secara drastis hingga **63%** dibanding cuaca Clear.
+    
+    **Rekomendasi bisnis:**
+    - Tingkatkan ketersediaan armada sepeda di **musim Fall** dengan cuaca cerah.
+    - Kurangi operasional saat **cuaca buruk** untuk efisiensi biaya.
+    """)
+
+with col_kesimpulan2:
+    st.markdown('**Pertanyaan 2: Pola Jam & Hari**')
+    st.markdown("""
+    - Penyewaan memuncak pada pukul **08.00** dan **17.00–18.00** yang mencerminkan pola penggunaan sepeda sebagai moda transportasi **komuter**.
+    - **Hari Jumat** mencatat penyewaan tertinggi dalam seminggu.
+    
+    **Rekomendasi bisnis:**
+    - Prioritaskan ketersediaan sepeda di **titik-titik strategis** (stasiun, perkantoran) pada jam dan hari tersebut.
+    - Siapkan armada tambahan untuk mengakomodasi lonjakan permintaan di jam sibuk.
+    """)
+
 st.markdown('---')
 st.caption('Sumber: Bike Sharing Dataset — Capital Bikeshare, Washington D.C. | Arel Lafito Dinoris')
