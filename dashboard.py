@@ -20,7 +20,7 @@ hour_df['yr'] = hour_df['yr'].map({0: 2011, 1: 2012})
 
 # ── HEADER ──
 st.title('🚴 Bike Sharing Dashboard')
-st.markdown('**Nama:** Arel Lafito Dinoris | **Email:** [areldinoris23@gmail.com] | **ID:** areldinoris')
+st.markdown('**Nama:** Arel Lafito Dinoris | **Email:** areldinoris23@gmail.com | **ID:** areldinoris')
 st.markdown('---')
 
 # ── METRIK RINGKASAN ──
