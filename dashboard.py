@@ -33,7 +33,7 @@ col_m4.metric('Rata-rata/Jam', f"{hour_df['cnt'].mean():.0f}")
 st.markdown('---')
 
 # ── PERTANYAAN 1: Musim & Cuaca (Persis seperti IPYNB) ──
-st.subheader('📊 Pertanyaan 1: Pengaruh Musim & Cuaca terhadap Penyewaan')
+st.subheader('📊 Pertanyaan 1: Bagaimana pengaruh kondisi cuaca dan musim terhadap jumlah penyewaan sepeda harian pada tahun 2011–2012?')
 
 fig1, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -62,11 +62,11 @@ plt.tight_layout()
 st.pyplot(fig1)
 plt.close(fig1)
 
-st.info('💡 Musim Fall dan cuaca Clear menghasilkan penyewaan tertinggi. Cuaca buruk menurunkan penyewaan drastis.')
+st.info('💡Visualisasi musim dan cuaca mengkonfirmasi bahwa Fall + Clear weather adalah kombinasi terbaik untuk penyewaan sepeda. Cuaca Light Rain/Snow menyebabkan penurunan penyewaan hingga 63% dibanding cuaca Clear.')
 
 st.markdown('---')
 
-# ── PERTANYAAN 2: Jam & Hari (Persis seperti IPYNB) ──
+# ── PERTANYAAN 2: Pada jam berapa dan hari apa penyewaan sepeda mencapai puncaknya dalam seminggu?──
 st.subheader('⏰ Pertanyaan 2: Pola Jam dan Hari dalam Seminggu')
 
 fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
@@ -96,7 +96,7 @@ plt.tight_layout()
 st.pyplot(fig2)
 plt.close(fig2)
 
-st.info('💡 Penyewaan memuncak jam 08.00 dan 17.00-18.00 (pola komuter). Kamis-Jumat adalah hari tersibuk.')
+st.info('💡Grafik per jam menunjukkan dua puncak jelas (bimodal) di jam 08.00 dan 17.00 yang konsisten dengan jam komuter kerja, sementara dini hari (01.00–04.00) adalah waktu terendah dengan rata-rata di bawah 25 penyewaan per jam.')
 
 st.markdown('---')
 st.caption('Sumber: Bike Sharing Dataset — Capital Bikeshare, Washington D.C. | Arel Lafito Dinoris')
