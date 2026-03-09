@@ -175,15 +175,6 @@ plt.tight_layout()
 st.pyplot(fig3)
 plt.close(fig3)
 
-# --- Ringkasan Statistik ---
-growth = day_df.groupby('yr')['cnt'].sum()
-pct = ((growth[2012] - growth[2011]) / growth[2011]) * 100
-
-col1, col2 = st.columns(2)
-with col1:
-    st.metric('Pertumbuhan 2011 → 2012', f"{pct:.1f}%")
-with col2:
-    st.metric('Total Pengguna Registered', f"{registered_total:,}")
     
 st.markdown('---')
 st.caption('Sumber: Bike Sharing Dataset — Capital Bikeshare, Washington D.C. | Arel Lafito Dinoris')
