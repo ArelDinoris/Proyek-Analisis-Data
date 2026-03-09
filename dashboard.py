@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import os
 
+# Set style matplotlib agar background putih
+plt.style.use('default')
+
 # Load data
 day_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'main_data.csv'))
 day_df['dteday'] = pd.to_datetime(day_df['dteday'])
