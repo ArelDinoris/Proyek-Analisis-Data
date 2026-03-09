@@ -106,6 +106,26 @@ st.markdown('---')
 # ================================================================
 st.subheader('📈 Analisis Lanjutan')
 
+# --- Ringkasan Statistik di awal Analisis Lanjutan ---
+growth = day_df.groupby('yr')['cnt'].sum()
+pct = ((growth[2012] - growth[2011]) / growth[2011]) * 100
+casual_total = day_df['casual'].sum()
+registered_total = day_df['registered'].sum()
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric('Total 2011', f"{growth[2011]:,}")
+    st.metric('Total 2012', f"{growth[2012]:,}")
+    st.metric('Pertumbuhan', f"{pct:.1f}%")
+with col2:
+    st.metric('Casual', f"{casual_total:,}")
+    st.metric('Registered', f"{registered_total:,}")
+with col3:
+    st.metric('Proporsi Casual', f"{casual_total/(casual_total+registered_total)*100:.1f}%")
+    st.metric('Proporsi Registered', f"{registered_total/(casual_total+registered_total)*100:.1f}%")
+
+st.markdown('---')
+
 # --- 1. Tren Penyewaan Bulanan 2011 vs 2012 ---
 monthly_trend = day_df.groupby(['yr', 'mnth'])['cnt'].sum().reset_index()
 pivot_trend = monthly_trend.pivot(index='mnth', columns='yr', values='cnt')
