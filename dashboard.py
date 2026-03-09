@@ -27,8 +27,8 @@ st.markdown('---')
 # ── METRIK RINGKASAN ──
 col_m1, col_m2, col_m3, col_m4 = st.columns(4)
 col_m1.metric('Total Penyewaan (2011-2012)', f"{day_df['cnt'].sum():,}")
-col_m2.metric('Rata-rata/Hari', f"{day_df['cnt'].mean():.0f}")
-col_m3.metric('Penyewaan Tertinggi', f"{day_df['cnt'].max():,}")
+col_m2.metric('Penyewaan Tertinggi', f"{day_df['cnt'].max():,}") 
+col_m3.metric('Rata-rata/Hari', f"{day_df['cnt'].mean():.0f}")
 col_m4.metric('Rata-rata/Jam', f"{hour_df['cnt'].mean():.0f}")
 
 st.markdown('---')
