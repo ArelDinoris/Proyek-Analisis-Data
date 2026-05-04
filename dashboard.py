@@ -1,684 +1,682 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import streamlit as st
 import os
 
-# ── PAGE CONFIG ──
+# Set style matplotlib agar background putih
+plt.style.use('default')
+
+# Konfigurasi halaman
 st.set_page_config(
-    page_title="🚴 Bike Sharing Dashboard",
+    page_title="Bike Sharing Dashboard",
     page_icon="🚴",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ── CUSTOM CSS ──
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Space Grotesk', sans-serif;
-    }
-
-    .main { background-color: #0f1117; }
-
-    .stApp {
-        background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 50%, #0f1117 100%);
-    }
-
-    .metric-card {
-        background: linear-gradient(135deg, #1e2030, #252840);
-        border: 1px solid #3d4166;
-        border-radius: 16px;
-        padding: 20px 24px;
-        text-align: center;
-        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
-        transition: transform 0.2s;
-    }
-    .metric-card:hover { transform: translateY(-2px); }
-    .metric-label {
-        font-size: 12px;
-        color: #8b8fa8;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-        font-family: 'DM Mono', monospace;
-    }
-    .metric-value {
-        font-size: 28px;
-        font-weight: 700;
-        color: #e8eaf6;
-    }
-    .metric-sub {
-        font-size: 12px;
-        color: #6366f1;
-        margin-top: 4px;
-    }
-
-    .section-header {
-        background: linear-gradient(90deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 22px;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
-
-    .insight-box {
-        background: linear-gradient(135deg, #1e2030, #1a2040);
-        border-left: 4px solid #6366f1;
-        border-radius: 0 12px 12px 0;
-        padding: 16px 20px;
-        color: #c5c8e6;
-        font-size: 14px;
-        margin-top: 12px;
-    }
-
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #1e2030;
-        border-radius: 12px;
-        padding: 4px;
-        gap: 4px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        color: #8b8fa8;
-        font-family: 'Space Grotesk', sans-serif;
-        font-weight: 500;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #6366f1 !important;
-        color: white !important;
-    }
-
-    .sidebar-title {
-        color: #6366f1;
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 16px;
-    }
-
-    div[data-testid="stMetric"] {
-        background: linear-gradient(135deg, #1e2030, #252840);
-        border: 1px solid #3d4166;
-        border-radius: 12px;
-        padding: 16px;
-    }
-    div[data-testid="stMetric"] label {
-        color: #8b8fa8 !important;
-        font-size: 12px !important;
-    }
-    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: #e8eaf6 !important;
-        font-weight: 700;
-    }
-
-    hr { border-color: #2d3155; }
-</style>
-""", unsafe_allow_html=True)
-
-plt.style.use('dark_background')
-CHART_BG    = '#1e2030'
-GRID_COLOR  = '#2d3155'
-TEXT_COLOR  = '#c5c8e6'
-ACCENT1     = '#6366f1'
-ACCENT2     = '#ec4899'
-ACCENT3     = '#10b981'
-ACCENT4     = '#f59e0b'
-PALETTE     = [ACCENT1, ACCENT2, ACCENT3, ACCENT4]
-
-def style_ax(ax, title=''):
-    ax.set_facecolor(CHART_BG)
-    ax.figure.patch.set_facecolor(CHART_BG)
-    ax.spines[['top','right']].set_visible(False)
-    ax.spines[['bottom','left']].set_color(GRID_COLOR)
-    ax.tick_params(colors=TEXT_COLOR, labelsize=10)
-    ax.xaxis.label.set_color(TEXT_COLOR)
-    ax.yaxis.label.set_color(TEXT_COLOR)
-    ax.grid(axis='y', color=GRID_COLOR, alpha=0.5, linestyle='--')
-    if title:
-        ax.set_title(title, color=TEXT_COLOR, fontsize=13, fontweight='600', pad=14)
-
-
-# ── LOAD DATA (tidak diubah) ──
-BASE = os.path.dirname(__file__)
-day_df  = pd.read_csv(os.path.join(BASE, 'main_data.csv'))
+# Load data
+day_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'main_data.csv'))
 day_df['dteday'] = pd.to_datetime(day_df['dteday'])
 
-hour_df = pd.read_csv(os.path.join(BASE, 'hour.csv'))
+# Load hour data
+hour_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'hour.csv'))
 hour_df['dteday'] = pd.to_datetime(hour_df['dteday'])
 
-hour_df['season']     = hour_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
+# Mapping season dan weather seperti di notebook
+hour_df['season'] = hour_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
+day_df['season'] = day_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
+
 hour_df['weathersit'] = hour_df['weathersit'].map({
     1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
 })
+day_df['weathersit'] = day_df['weathersit'].map({
+    1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
+})
+
 hour_df['yr'] = hour_df['yr'].map({0: 2011, 1: 2012})
+day_df['yr'] = day_df['yr'].map({0: 2011, 1: 2012})
 
-# day_df season & weather mapping (jika belum ada)
-if day_df['season'].dtype != object:
-    day_df['season'] = day_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
-if day_df['weathersit'].dtype != object:
-    day_df['weathersit'] = day_df['weathersit'].map({
-        1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
-    })
-if day_df['yr'].dtype != object:
-    day_df['yr'] = day_df['yr'].map({0: 2011, 1: 2012})
+# ── SIDEBAR: FILTER GLOBAL ──
+st.sidebar.header('🔍 Filter Global')
 
-day_map = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
-hour_df['weekday_name'] = hour_df['weekday'].map(day_map)
+# Filter tahun
+year_options = ['Semua'] + sorted(day_df['yr'].unique().tolist())
+selected_year = st.sidebar.selectbox('Pilih Tahun:', year_options, index=0)
 
-# ── SIDEBAR FILTERS ──
-with st.sidebar:
-    st.markdown('<div class="sidebar-title">🎛️ Filter & Slicer</div>', unsafe_allow_html=True)
-    st.markdown("---")
-
-    # Tahun
-    st.markdown("**📅 Tahun**")
-    year_options = sorted(day_df['yr'].unique())
-    selected_years = st.multiselect("Pilih Tahun", year_options, default=year_options)
-
-    # Musim
-    st.markdown("**🌿 Musim**")
-    season_options = ['Spring','Summer','Fall','Winter']
-    selected_seasons = st.multiselect("Pilih Musim", season_options, default=season_options)
-
-    # Kondisi Cuaca
-    st.markdown("**⛅ Kondisi Cuaca**")
-    weather_options = [w for w in ['Clear','Mist','Light Rain/Snow','Heavy Rain/Snow']
-                       if w in day_df['weathersit'].unique()]
-    selected_weather = st.multiselect("Pilih Cuaca", weather_options, default=weather_options)
-
-    # Rentang Tanggal
-    st.markdown("**📆 Rentang Tanggal**")
-    min_date = day_df['dteday'].min().date()
-    max_date = day_df['dteday'].max().date()
-    date_range = st.date_input("Pilih Rentang", value=(min_date, max_date),
-                               min_value=min_date, max_value=max_date)
-
-    # Hari Kerja
-    st.markdown("**🗓️ Tipe Hari**")
-    workday_filter = st.radio("Tampilkan", ["Semua", "Hari Kerja", "Libur/Weekend"])
-
-    st.markdown("---")
-    st.markdown('<div style="color:#8b8fa8;font-size:12px;">Arel Lafito Dinoris<br>areldinoris23@gmail.com</div>',
-                unsafe_allow_html=True)
-
-# ── APPLY FILTERS ──
-if len(date_range) == 2:
-    start_d, end_d = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
-else:
-    start_d, end_d = day_df['dteday'].min(), day_df['dteday'].max()
-
-mask_day = (
-    day_df['yr'].isin(selected_years) &
-    day_df['season'].isin(selected_seasons) &
-    day_df['weathersit'].isin(selected_weather) &
-    day_df['dteday'].between(start_d, end_d)
+# Filter musim
+season_options = ['Semua'] + sorted(day_df['season'].unique().tolist())
+selected_season = st.sidebar.multiselect(
+    'Pilih Musim:',
+    season_options,
+    default=['Semua']
 )
-if workday_filter == "Hari Kerja":
-    mask_day &= day_df['workingday'] == 1
-elif workday_filter == "Libur/Weekend":
-    mask_day &= day_df['workingday'] == 0
 
-filtered_day  = day_df[mask_day]
-
-mask_hour = (
-    hour_df['yr'].isin(selected_years) &
-    hour_df['season'].isin(selected_seasons) &
-    hour_df['weathersit'].isin(selected_weather) &
-    hour_df['dteday'].between(start_d, end_d)
+# Filter cuaca
+weather_options = ['Semua'] + sorted(day_df['weathersit'].unique().tolist())
+selected_weather = st.sidebar.multiselect(
+    'Pilih Kondisi Cuaca:',
+    weather_options,
+    default=['Semua']
 )
-filtered_hour = hour_df[mask_hour]
+
+# Filter range bulan
+st.sidebar.markdown('---')
+st.sidebar.subheader('📅 Filter Bulan')
+month_range = st.sidebar.slider(
+    'Pilih Range Bulan (1-12):',
+    min_value=1,
+    max_value=12,
+    value=(1, 12)
+)
+
+# Filter hari dalam seminggu
+st.sidebar.markdown('---')
+st.sidebar.subheader('📅 Filter Hari')
+day_options = ['Semua', 'Weekday (Sen-Jum)', 'Weekend (Sab-Min)']
+selected_day_type = st.sidebar.radio('Pilih Tipe Hari:', day_options, index=0)
+
+# Apply filters
+def apply_filters(df, year, season, weather, month_range, day_type):
+    df_filtered = df.copy()
+    
+    if year != 'Semua':
+        df_filtered = df_filtered[df_filtered['yr'] == year]
+    
+    if 'Semua' not in season and len(season) > 0:
+        df_filtered = df_filtered[df_filtered['season'].isin(season)]
+    
+    if 'Semua' not in weather and len(weather) > 0:
+        df_filtered = df_filtered[df_filtered['weathersit'].isin(weather)]
+    
+    df_filtered = df_filtered[
+        (df_filtered['mnth'] >= month_range[0]) & 
+        (df_filtered['mnth'] <= month_range[1])
+    ]
+    
+    # Filter tipe hari (hanya untuk hour_df yang memiliki kolom weekday)
+    if 'weekday' in df_filtered.columns and day_type != 'Semua':
+        if day_type == 'Weekday (Sen-Jum)':
+            df_filtered = df_filtered[df_filtered['weekday'].isin([0, 1, 2, 3, 4])]  # 0=Sen, 4=Jum
+        elif day_type == 'Weekend (Sab-Min)':
+            df_filtered = df_filtered[df_filtered['weekday'].isin([5, 6])]  # 5=Sab, 6=Min
+    
+    return df_filtered
+
+day_df_filtered = apply_filters(day_df, selected_year, selected_season, selected_weather, month_range, 'Semua')
+hour_df_filtered = apply_filters(hour_df, selected_year, selected_season, selected_weather, month_range, selected_day_type)
 
 # ── HEADER ──
-st.markdown("""
-<div style="padding:24px 0 8px 0">
-    <div style="font-size:36px;font-weight:800;background:linear-gradient(90deg,#6366f1,#ec4899);
-         -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
-        🚴 Bike Sharing Dashboard
-    </div>
-    <div style="color:#8b8fa8;font-size:14px;margin-top:4px;font-family:'DM Mono',monospace;">
-        Capital Bikeshare · Washington D.C. · 2011–2012
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.title('🚴 Bike Sharing Dashboard')
+st.markdown('**Nama:** Arel Lafito Dinoris | **Email:** areldinoris23@gmail.com | **ID:** areldinoris')
+st.markdown('---')
 
-st.markdown("---")
+# ── METRIK RINGKASAN ──
+col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+col_m1.metric('Total Penyewaan (Filtered)', f"{day_df_filtered['cnt'].sum():,}")
+col_m2.metric('Penyewaan Tertinggi', f"{day_df_filtered['cnt'].max():,}" if not day_df_filtered.empty else "0") 
+col_m3.metric('Rata-rata/Hari', f"{day_df_filtered['cnt'].mean():.0f}" if not day_df_filtered.empty else "0")
+col_m4.metric('Rata-rata/Jam', f"{hour_df_filtered['cnt'].mean():.0f}" if not hour_df_filtered.empty else "0")
 
-# ── METRIK ──
-c1, c2, c3, c4, c5 = st.columns(5)
-metrics = [
-    ("Total Penyewaan", f"{filtered_day['cnt'].sum():,}", "periode terpilih"),
-    ("Penyewaan Tertinggi", f"{filtered_day['cnt'].max():,}" if len(filtered_day) else "–", "dalam sehari"),
-    ("Rata-rata/Hari", f"{filtered_day['cnt'].mean():.0f}" if len(filtered_day) else "–", "hari terpilih"),
-    ("Rata-rata/Jam", f"{filtered_hour['cnt'].mean():.0f}" if len(filtered_hour) else "–", "jam terpilih"),
-    ("Hari Dianalisis", f"{len(filtered_day):,}", "hari data"),
-]
-for col, (label, val, sub) in zip([c1,c2,c3,c4,c5], metrics):
-    with col:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{val}</div>
-            <div class="metric-sub">{sub}</div>
-        </div>""", unsafe_allow_html=True)
+st.markdown('---')
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ══════════════════════════════
-#  TAB NAVIGASI
-# ══════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Musim & Cuaca",
-    "⏰ Jam & Hari",
-    "📈 Tren & Segmentasi",
-    "🔥 Heatmap & Distribusi",
-    "✅ Kesimpulan"
+# ── TAB INTERAKTIF ──
+tab1, tab2, tab3, tab4 = st.tabs([
+    '📊 Musim & Cuaca', 
+    '⏰ Jam & Hari', 
+    '📈 Analisis Lanjutan', 
+    '📋 Eksplorasi Data'
 ])
 
-# ──────────────────────────────
-# TAB 1 — Musim & Cuaca
-# ──────────────────────────────
+# ── TAB 1: PERTANYAAN 1 ──
 with tab1:
-    st.markdown('<div class="section-header">Pengaruh Musim & Cuaca terhadap Penyewaan Sepeda</div>',
-                unsafe_allow_html=True)
-    st.markdown("Pertanyaan: *Bagaimana kondisi cuaca dan musim memengaruhi jumlah penyewaan harian (2011–2012)?*")
-
-    col_left, col_right = st.columns(2)
-
-    with col_left:
-        season_order = [s for s in ['Spring','Summer','Fall','Winter'] if s in selected_seasons]
-        if season_order and len(filtered_day):
-            season_avg = filtered_day.groupby('season')['cnt'].mean().reindex(season_order).dropna()
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            colors = [ACCENT1, ACCENT4, ACCENT2, ACCENT3][:len(season_avg)]
-            bars = ax.bar(season_avg.index, season_avg.values, color=colors,
-                         width=0.55, edgecolor='none', zorder=3)
-            for bar, v in zip(bars, season_avg.values):
-                ax.text(bar.get_x()+bar.get_width()/2, v+60, f'{v:,.0f}',
-                        ha='center', color=TEXT_COLOR, fontsize=10, fontweight='600')
-            style_ax(ax, 'Rata-rata Penyewaan per Musim')
-            ax.set_xlabel('Musim', color=TEXT_COLOR)
-            ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-            st.pyplot(fig)
-            plt.close(fig)
-        else:
-            st.warning("Tidak ada data untuk filter yang dipilih.")
-
-    with col_right:
-        if len(filtered_day):
-            weather_avg = filtered_day.groupby('weathersit')['cnt'].mean().sort_values(ascending=False)
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            bars = ax.bar(weather_avg.index, weather_avg.values,
-                         color=[ACCENT3, ACCENT1, ACCENT4, ACCENT2][:len(weather_avg)],
-                         width=0.55, edgecolor='none', zorder=3)
-            for bar, v in zip(bars, weather_avg.values):
-                ax.text(bar.get_x()+bar.get_width()/2, v+60, f'{v:,.0f}',
-                        ha='center', color=TEXT_COLOR, fontsize=10, fontweight='600')
-            style_ax(ax, 'Rata-rata Penyewaan per Kondisi Cuaca')
-            ax.set_xlabel('Kondisi Cuaca', color=TEXT_COLOR)
-            ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-            ax.tick_params(axis='x', rotation=15)
-            st.pyplot(fig)
-            plt.close(fig)
-
-    # Grouped bar: musim per tahun
-    if len(filtered_day) and len(selected_years) > 0:
-        st.markdown("#### Perbandingan Musim per Tahun")
-        season_year = filtered_day.groupby(['yr','season'])['cnt'].mean().reset_index()
-        pivot_sy    = season_year.pivot(index='season', columns='yr', values='cnt').reindex(
-            [s for s in ['Spring','Summer','Fall','Winter'] if s in filtered_day['season'].unique()])
-
-        fig, ax = plt.subplots(figsize=(10,4))
-        fig.patch.set_facecolor(CHART_BG)
-        x       = np.arange(len(pivot_sy))
-        n_cols  = len(pivot_sy.columns)
-        width   = 0.35 if n_cols == 2 else 0.6
-        offset  = width / n_cols
-        clrs    = [ACCENT1, ACCENT2, ACCENT3, ACCENT4]
-
-        for i, yr in enumerate(pivot_sy.columns):
-            vals  = pivot_sy[yr].fillna(0).values
-            rects = ax.bar(x + i*offset - (n_cols-1)*offset/2, vals,
-                          width=offset*0.85, label=str(yr), color=clrs[i], zorder=3)
-            for r,v in zip(rects, vals):
-                if v > 0:
-                    ax.text(r.get_x()+r.get_width()/2, v+40, f'{v:,.0f}',
-                            ha='center', color=TEXT_COLOR, fontsize=9)
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(pivot_sy.index, color=TEXT_COLOR)
-        style_ax(ax, 'Rata-rata Penyewaan per Musim & Tahun')
-        ax.set_xlabel('Musim', color=TEXT_COLOR)
-        ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-        ax.legend(title='Tahun', title_fontsize=10, fontsize=10,
-                 facecolor=CHART_BG, labelcolor=TEXT_COLOR)
-        st.pyplot(fig)
-        plt.close(fig)
-
-    st.markdown('<div class="insight-box">💡 <b>Insight:</b> Fall + Clear weather adalah kombinasi terbaik untuk penyewaan sepeda. '
-                'Cuaca Light Rain/Snow menyebabkan penurunan hingga 63% dibanding cuaca Clear.</div>',
-                unsafe_allow_html=True)
-
-# ──────────────────────────────
-# TAB 2 — Jam & Hari
-# ──────────────────────────────
-with tab2:
-    st.markdown('<div class="section-header">Pola Penyewaan per Jam & Hari</div>', unsafe_allow_html=True)
-    st.markdown("Pertanyaan: *Pada jam berapa dan hari apa penyewaan sepeda mencapai puncaknya?*")
-
-    col_l, col_r = st.columns(2)
-
-    with col_l:
-        if len(filtered_hour):
-            hour_avg = filtered_hour.groupby('hr')['cnt'].mean()
-            fig, ax  = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            ax.fill_between(hour_avg.index, hour_avg.values,
-                           alpha=0.25, color=ACCENT1)
-            ax.plot(hour_avg.index, hour_avg.values, marker='o', markersize=4,
-                   color=ACCENT1, linewidth=2.5, zorder=3)
-            ax.axvline(x=8,  color=ACCENT4, linestyle='--', alpha=0.8, linewidth=1.5, label='Jam 08:00')
-            ax.axvline(x=17, color=ACCENT2, linestyle='--', alpha=0.8, linewidth=1.5, label='Jam 17:00')
-            ax.set_xticks(range(0,24))
-            style_ax(ax, 'Rata-rata Penyewaan per Jam')
-            ax.set_xlabel('Jam', color=TEXT_COLOR)
-            ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-            ax.legend(facecolor=CHART_BG, labelcolor=TEXT_COLOR, fontsize=10)
-            st.pyplot(fig)
-            plt.close(fig)
-
-    with col_r:
-        if len(filtered_hour):
-            wkday_order = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-            weekday_avg = (filtered_hour.groupby('weekday_name')['cnt'].mean()
-                          .reindex([d for d in wkday_order if d in filtered_hour['weekday_name'].unique()]))
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            clrs = [ACCENT2 if d == weekday_avg.idxmax() else ACCENT1 for d in weekday_avg.index]
-            bars = ax.bar(weekday_avg.index, weekday_avg.values, color=clrs,
-                         width=0.55, edgecolor='none', zorder=3)
-            for bar, v in zip(bars, weekday_avg.values):
-                ax.text(bar.get_x()+bar.get_width()/2, v+2, f'{v:,.0f}',
-                        ha='center', color=TEXT_COLOR, fontsize=9, fontweight='600')
-            style_ax(ax, 'Rata-rata Penyewaan per Hari')
-            ax.set_xlabel('Hari', color=TEXT_COLOR)
-            ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-            st.pyplot(fig)
-            plt.close(fig)
-
-    # Pola jam per musim
-    if len(filtered_hour):
-        st.markdown("#### Pola Jam per Musim (Line Multi-Series)")
-        hour_season = filtered_hour.groupby(['season','hr'])['cnt'].mean().reset_index()
-        fig, ax     = plt.subplots(figsize=(12,4.5))
-        fig.patch.set_facecolor(CHART_BG)
-        season_colors = {'Spring':ACCENT3,'Summer':ACCENT4,'Fall':ACCENT2,'Winter':ACCENT1}
-        for i, (season, grp) in enumerate(hour_season.groupby('season')):
-            ax.plot(grp['hr'], grp['cnt'], label=season,
-                   color=season_colors.get(season, PALETTE[i%4]), linewidth=2.5, marker='o', markersize=3)
-        ax.set_xticks(range(0,24))
-        style_ax(ax, 'Pola Penyewaan per Jam berdasarkan Musim')
-        ax.set_xlabel('Jam', color=TEXT_COLOR)
-        ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-        ax.legend(title='Musim', facecolor=CHART_BG, labelcolor=TEXT_COLOR, fontsize=10)
-        st.pyplot(fig)
-        plt.close(fig)
-
-    st.markdown('<div class="insight-box">💡 <b>Insight:</b> Dua puncak jelas (bimodal) di jam 08:00 dan 17:00 '
-                'mencerminkan pola komuter. Hari Jumat mencatat penyewaan tertinggi dalam seminggu.</div>',
-                unsafe_allow_html=True)
-
-# ──────────────────────────────
-# TAB 3 — Tren & Segmentasi
-# ──────────────────────────────
-with tab3:
-    st.markdown('<div class="section-header">Tren Bulanan & Segmentasi Pengguna</div>', unsafe_allow_html=True)
-
-    # Metrik pertumbuhan
-    if len(filtered_day):
-        growth  = filtered_day.groupby('yr')['cnt'].sum()
-        reg_tot = filtered_day['registered'].sum()
-        cas_tot = filtered_day['casual'].sum()
-
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Total Registered", f"{reg_tot:,}")
-        m2.metric("Total Casual",     f"{cas_tot:,}")
-        m3.metric("% Registered",     f"{reg_tot/(reg_tot+cas_tot)*100:.1f}%")
-        m4.metric("% Casual",         f"{cas_tot/(reg_tot+cas_tot)*100:.1f}%")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        col_l, col_r = st.columns(2)
-
-        # Tren bulanan
-        with col_l:
-            monthly = filtered_day.groupby(['yr','mnth'])['cnt'].sum().reset_index()
-            pivot   = monthly.pivot(index='mnth', columns='yr', values='cnt')
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            clr_map = [ACCENT1, ACCENT2, ACCENT3, ACCENT4]
-            for i, yr in enumerate(pivot.columns):
-                ax.plot(pivot.index, pivot[yr], marker='o', label=str(yr),
-                       color=clr_map[i], linewidth=2.5)
-                ax.fill_between(pivot.index, pivot[yr], alpha=0.08, color=clr_map[i])
-            ax.set_xticks(range(1,13))
-            ax.set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
-                               'Jul','Agu','Sep','Okt','Nov','Des'],
-                              color=TEXT_COLOR, fontsize=9, rotation=30)
-            style_ax(ax, 'Tren Penyewaan Bulanan per Tahun')
-            ax.set_xlabel('Bulan', color=TEXT_COLOR)
-            ax.set_ylabel('Total Penyewaan', color=TEXT_COLOR)
-            ax.legend(facecolor=CHART_BG, labelcolor=TEXT_COLOR)
-            st.pyplot(fig)
-            plt.close(fig)
-
-        # Donut chart casual vs registered
-        with col_r:
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            wedge_props = {'linewidth':3, 'edgecolor': CHART_BG}
-            wedges, texts, autotexts = ax.pie(
-                [cas_tot, reg_tot],
-                labels=['Casual','Registered'],
-                autopct='%1.1f%%',
-                colors=[ACCENT4, ACCENT1],
-                startangle=90,
-                explode=(0.04, 0),
-                wedgeprops=wedge_props,
-                pctdistance=0.82,
-                textprops={'color': TEXT_COLOR, 'fontsize': 12}
-            )
-            for at in autotexts:
-                at.set_color('white')
-                at.set_fontweight('bold')
-            # inner circle for donut
-            inner = plt.Circle((0,0), 0.55, color=CHART_BG)
-            ax.add_artist(inner)
-            ax.set_title('Proporsi Casual vs Registered', color=TEXT_COLOR, fontsize=13, fontweight='600')
-            st.pyplot(fig)
-            plt.close(fig)
-
-        # Tren casual vs registered per bulan
-        st.markdown("#### Tren Casual vs Registered per Bulan")
-        monthly_seg = filtered_day.groupby('mnth')[['casual','registered']].sum().reset_index()
-        fig, ax     = plt.subplots(figsize=(12,4.5))
-        fig.patch.set_facecolor(CHART_BG)
-        ax.bar(monthly_seg['mnth'], monthly_seg['registered'],
-              label='Registered', color=ACCENT1, zorder=3)
-        ax.bar(monthly_seg['mnth'], monthly_seg['casual'],
-              bottom=monthly_seg['registered'], label='Casual', color=ACCENT4, zorder=3)
-        ax.set_xticks(range(1,13))
-        ax.set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
-                           'Jul','Agu','Sep','Okt','Nov','Des'],
-                          color=TEXT_COLOR, fontsize=10)
-        style_ax(ax, 'Tren Penyewaan: Casual vs Registered (Stacked)')
-        ax.set_xlabel('Bulan', color=TEXT_COLOR)
-        ax.set_ylabel('Total Penyewaan', color=TEXT_COLOR)
-        ax.legend(facecolor=CHART_BG, labelcolor=TEXT_COLOR)
-        st.pyplot(fig)
-        plt.close(fig)
+    st.subheader('📊 Bagaimana pengaruh kondisi cuaca dan musim terhadap jumlah penyewaan sepeda harian?')
+    
+    if day_df_filtered.empty:
+        st.warning('⚠️ Tidak ada data yang sesuai dengan filter terpilih. Silakan ubah filter.')
     else:
-        st.warning("Tidak ada data untuk filter yang dipilih.")
+        # Opsi tampilan chart
+        col_chart, col_info = st.columns([3, 1])
+        
+        with col_info:
+            st.markdown('**🎨 Opsi Visualisasi:**')
+            chart_type_1 = st.radio(
+                'Pilih tipe chart:',
+                ['Bar Chart', 'Horizontal Bar', 'Pie Chart'],
+                key='chart_type_1'
+            )
+            
+            st.markdown('---')
+            st.markdown('**📊 Statistik Cepat:**')
+            best_season = day_df_filtered.groupby('season')['cnt'].mean().idxmax()
+            best_weather = day_df_filtered.groupby('weathersit')['cnt'].mean().idxmax()
+            st.metric('Musim Terbaik', best_season)
+            st.metric('Cuaca Terbaik', best_weather)
+        
+        if chart_type_1 == 'Bar Chart':
+            fig1, axes = plt.subplots(1, 2, figsize=(14, 5))
+            
+            # Plot musim
+            season_order = ['Spring', 'Summer', 'Fall', 'Winter']
+            season_avg = day_df_filtered.groupby('season')['cnt'].mean().reindex(season_order)
+            colors_season = ['#4CAF50', '#FFC107', '#F44336', '#2196F3']
+            axes[0].bar(season_avg.index, season_avg.values, color=colors_season, edgecolor='black', linewidth=0.5)
+            axes[0].set_title('Rata-rata Penyewaan per Musim', fontsize=14, fontweight='bold')
+            axes[0].set_xlabel('Musim')
+            axes[0].set_ylabel('Rata-rata Penyewaan')
+            axes[0].grid(axis='y', alpha=0.3)
+            for i, v in enumerate(season_avg.values):
+                if not np.isnan(v):
+                    axes[0].text(i, v + 50, f'{v:,.0f}', ha='center', fontsize=10, fontweight='bold')
+            
+            # Plot cuaca
+            weather_avg = day_df_filtered.groupby('weathersit')['cnt'].mean().sort_values(ascending=True)
+            colors_weather = plt.cm.Blues(np.linspace(0.4, 0.9, len(weather_avg)))
+            axes[1].barh(weather_avg.index, weather_avg.values, color=colors_weather, edgecolor='black', linewidth=0.5)
+            axes[1].set_title('Rata-rata Penyewaan per Kondisi Cuaca', fontsize=14, fontweight='bold')
+            axes[1].set_xlabel('Rata-rata Penyewaan')
+            axes[1].grid(axis='x', alpha=0.3)
+            for i, v in enumerate(weather_avg.values):
+                if not np.isnan(v):
+                    axes[1].text(v + 30, i, f'{v:,.0f}', va='center', fontsize=10, fontweight='bold')
+            
+            plt.tight_layout()
+            st.pyplot(fig1)
+            plt.close(fig1)
+        
+        elif chart_type_1 == 'Horizontal Bar':
+            fig1, axes = plt.subplots(2, 1, figsize=(10, 8))
+            
+            # Plot musim horizontal
+            season_order = ['Spring', 'Summer', 'Fall', 'Winter']
+            season_avg = day_df_filtered.groupby('season')['cnt'].mean().reindex(season_order)
+            colors_season = ['#4CAF50', '#FFC107', '#F44336', '#2196F3']
+            axes[0].barh(season_avg.index, season_avg.values, color=colors_season, edgecolor='black', linewidth=0.5)
+            axes[0].set_title('Rata-rata Penyewaan per Musim', fontsize=14, fontweight='bold')
+            axes[0].set_xlabel('Rata-rata Penyewaan')
+            axes[0].grid(axis='x', alpha=0.3)
+            for i, v in enumerate(season_avg.values):
+                if not np.isnan(v):
+                    axes[0].text(v + 50, i, f'{v:,.0f}', va='center', fontsize=10, fontweight='bold')
+            
+            # Plot cuaca horizontal
+            weather_avg = day_df_filtered.groupby('weathersit')['cnt'].mean().sort_values(ascending=True)
+            colors_weather = plt.cm.Oranges(np.linspace(0.4, 0.9, len(weather_avg)))
+            axes[1].barh(weather_avg.index, weather_avg.values, color=colors_weather, edgecolor='black', linewidth=0.5)
+            axes[1].set_title('Rata-rata Penyewaan per Kondisi Cuaca', fontsize=14, fontweight='bold')
+            axes[1].set_xlabel('Rata-rata Penyewaan')
+            axes[1].grid(axis='x', alpha=0.3)
+            for i, v in enumerate(weather_avg.values):
+                if not np.isnan(v):
+                    axes[1].text(v + 30, i, f'{v:,.0f}', va='center', fontsize=10, fontweight='bold')
+            
+            plt.tight_layout()
+            st.pyplot(fig1)
+            plt.close(fig1)
+        
+        else:  # Pie Chart
+            fig1, axes = plt.subplots(1, 2, figsize=(14, 6))
+            
+            # Pie musim
+            season_sum = day_df_filtered.groupby('season')['cnt'].sum()
+            colors_season = ['#4CAF50', '#FFC107', '#F44336', '#2196F3']
+            wedges1, texts1, autotexts1 = axes[0].pie(
+                season_sum.values, 
+                labels=season_sum.index, 
+                autopct='%1.1f%%',
+                colors=colors_season,
+                startangle=90,
+                explode=[0.05]*len(season_sum)
+            )
+            axes[0].set_title('Proporsi Penyewaan per Musim', fontsize=14, fontweight='bold')
+            
+            # Pie cuaca
+            weather_sum = day_df_filtered.groupby('weathersit')['cnt'].sum()
+            colors_weather = plt.cm.Set3(np.linspace(0, 1, len(weather_sum)))
+            wedges2, texts2, autotexts2 = axes[1].pie(
+                weather_sum.values,
+                labels=weather_sum.index,
+                autopct='%1.1f%%',
+                colors=colors_weather,
+                startangle=90,
+                explode=[0.02]*len(weather_sum)
+            )
+            axes[1].set_title('Proporsi Penyewaan per Cuaca', fontsize=14, fontweight='bold')
+            
+            plt.tight_layout()
+            st.pyplot(fig1)
+            plt.close(fig1)
+    
+    st.info('💡 Visualisasi musim dan cuaca mengkonfirmasi bahwa Fall + Clear weather adalah kombinasi terbaik untuk penyewaan sepeda. Cuaca Light Rain/Snow menyebabkan penurunan penyewaan hingga 63% dibanding cuaca Clear.')
 
-# ──────────────────────────────
-# TAB 4 — Heatmap & Distribusi
-# ──────────────────────────────
+# ── TAB 2: PERTANYAAN 2 ──
+with tab2:
+    st.subheader('⏰ Pada jam berapa dan hari apa penyewaan sepeda mencapai puncaknya dalam seminggu?')
+    
+    if hour_df_filtered.empty:
+        st.warning('⚠️ Tidak ada data yang sesuai dengan filter terpilih. Silakan ubah filter.')
+    else:
+        col_chart2, col_info2 = st.columns([3, 1])
+        
+        with col_info2:
+            st.markdown('**🎨 Opsi Visualisasi:**')
+            chart_type_2 = st.radio(
+                'Pilih tipe chart:',
+                ['Line & Bar Chart', 'Area Chart', 'Tabel Pivot'],
+                key='chart_type_2'
+            )
+            
+            st.markdown('---')
+            st.markdown('**📍 Highlight Puncak:**')
+            show_peaks = st.checkbox('Tandai jam puncak', value=True)
+            
+            st.markdown('---')
+            st.markdown('**📊 Statistik Cepat:**')
+            peak_hour = hour_df_filtered.groupby('hr')['cnt'].mean().idxmax()
+            peak_day = hour_df_filtered.groupby('weekday')['cnt'].mean().idxmax()
+            day_map = {0:'Minggu', 1:'Senin', 2:'Selasa', 3:'Rabu', 4:'Kamis', 5:'Jumat', 6:'Sabtu'}
+            st.metric('Jam Tersibuk', f'{peak_hour:.0f}:00')
+            st.metric('Hari Tersibuk', day_map.get(int(peak_day), str(peak_day)))
+        
+        if chart_type_2 == 'Line & Bar Chart':
+            fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
+            
+            # Plot per jam
+            hour_avg = hour_df_filtered.groupby('hr')['cnt'].mean()
+            axes2[0].plot(hour_avg.index, hour_avg.values, marker='o', color='#E53935', linewidth=2, markersize=4)
+            axes2[0].fill_between(hour_avg.index, hour_avg.values, alpha=0.2, color='#E53935')
+            axes2[0].set_title('Rata-rata Penyewaan per Jam', fontsize=14, fontweight='bold')
+            axes2[0].set_xlabel('Jam')
+            axes2[0].set_ylabel('Rata-rata Penyewaan')
+            axes2[0].set_xticks(range(0, 24))
+            axes2[0].grid(alpha=0.3)
+            
+            if show_peaks:
+                axes2[0].axvline(x=8, color='gray', linestyle='--', alpha=0.7, linewidth=1.5, label='Jam 08.00')
+                axes2[0].axvline(x=17, color='blue', linestyle='--', alpha=0.7, linewidth=1.5, label='Jam 17.00')
+                axes2[0].legend(loc='upper left')
+            
+            # Plot per hari
+            day_map = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
+            weekday_avg = hour_df_filtered.groupby('weekday')['cnt'].mean().rename(index=day_map)
+            day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            weekday_avg = weekday_avg.reindex([d for d in day_order if d in weekday_avg.index])
+            
+            colors_days = ['#2196F3' if d not in ['Sat', 'Sun'] else '#FF9800' for d in weekday_avg.index]
+            axes2[1].bar(weekday_avg.index, weekday_avg.values, color=colors_days, edgecolor='black', linewidth=0.5)
+            axes2[1].set_title('Rata-rata Penyewaan per Hari', fontsize=14, fontweight='bold')
+            axes2[1].set_xlabel('Hari')
+            axes2[1].set_ylabel('Rata-rata Penyewaan')
+            axes2[1].grid(axis='y', alpha=0.3)
+            for i, v in enumerate(weekday_avg.values):
+                if not np.isnan(v):
+                    axes2[1].text(i, v + 5, f'{v:,.0f}', ha='center', fontsize=9, fontweight='bold')
+            
+            plt.tight_layout()
+            st.pyplot(fig2)
+            plt.close(fig2)
+        
+        elif chart_type_2 == 'Area Chart':
+            fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
+            
+            # Area chart per jam
+            hour_avg = hour_df_filtered.groupby('hr')['cnt'].mean()
+            axes2[0].fill_between(hour_avg.index, hour_avg.values, alpha=0.5, color='#E53935')
+            axes2[0].plot(hour_avg.index, hour_avg.values, color='#C62828', linewidth=2)
+            axes2[0].set_title('Pola Penyewaan per Jam (Area Chart)', fontsize=14, fontweight='bold')
+            axes2[0].set_xlabel('Jam')
+            axes2[0].set_ylabel('Rata-rata Penyewaan')
+            axes2[0].set_xticks(range(0, 24, 2))
+            axes2[0].grid(alpha=0.3)
+            
+            # Area chart per hari
+            day_map = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
+            weekday_avg = hour_df_filtered.groupby('weekday')['cnt'].mean().rename(index=day_map)
+            day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            weekday_avg = weekday_avg.reindex([d for d in day_order if d in weekday_avg.index])
+            
+            axes2[1].fill_between(range(len(weekday_avg)), weekday_avg.values, alpha=0.5, color='#AB47BC')
+            axes2[1].plot(range(len(weekday_avg)), weekday_avg.values, color='#6A1B9A', linewidth=2, marker='o')
+            axes2[1].set_title('Pola Penyewaan per Hari (Area Chart)', fontsize=14, fontweight='bold')
+            axes2[1].set_xlabel('Hari')
+            axes2[1].set_ylabel('Rata-rata Penyewaan')
+            axes2[1].set_xticks(range(len(weekday_avg)))
+            axes2[1].set_xticklabels(weekday_avg.index)
+            axes2[1].grid(alpha=0.3)
+            
+            plt.tight_layout()
+            st.pyplot(fig2)
+            plt.close(fig2)
+        
+        else:  # Tabel Pivot
+            st.markdown('**📊 Tabel Pivot: Rata-rata Penyewaan per Jam & Hari**')
+            pivot_table = hour_df_filtered.pivot_table(
+                values='cnt',
+                index='weekday',
+                columns='hr',
+                aggfunc='mean'
+            ).round(0)
+            
+            day_map = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
+            pivot_table.index = [day_map.get(int(i), str(i)) for i in pivot_table.index]
+            
+            # Highlight max values
+            st.dataframe(
+                pivot_table.style.background_gradient(cmap='YlOrRd', axis=None),
+                use_container_width=True
+            )
+            
+            st.markdown('**Warna merah = penyewaan tinggi, kuning = penyewaan rendah**')
+    
+    st.info('💡 Grafik per jam menunjukkan dua puncak jelas (bimodal) di jam 08.00 dan 17.00 yang konsisten dengan jam komuter kerja, sementara dini hari (01.00–04.00) adalah waktu terendah dengan rata-rata di bawah 25 penyewaan per jam.')
+
+# ── TAB 3: ANALISIS LANJUTAN ──
+with tab3:
+    st.subheader('📈 Analisis Lanjutan')
+    
+    if day_df_filtered.empty:
+        st.warning('⚠️ Tidak ada data yang sesuai dengan filter terpilih. Silakan ubah filter.')
+    else:
+        # Ringkasan Statistik
+        growth = day_df_filtered.groupby('yr')['cnt'].sum()
+        years_available = growth.index.tolist()
+        
+        if len(years_available) > 0:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                for year in years_available:
+                    st.metric(f'Total {year}', f"{growth[year]:,}")
+                if len(years_available) == 2:
+                    pct = ((growth[2012] - growth[2011]) / growth[2011]) * 100 if 2011 in years_available and 2012 in years_available else 0
+                    st.metric('Pertumbuhan', f"{pct:.1f}%")
+            
+            casual_total = day_df_filtered['casual'].sum()
+            registered_total = day_df_filtered['registered'].sum()
+            
+            with col2:
+                st.metric('Casual', f"{casual_total:,}")
+                st.metric('Registered', f"{registered_total:,}")
+            
+            with col3:
+                total = casual_total + registered_total
+                if total > 0:
+                    st.metric('Proporsi Casual', f"{(casual_total/total)*100:.1f}%")
+                    st.metric('Proporsi Registered', f"{(registered_total/total)*100:.1f}%")
+        
+        st.markdown('---')
+        
+        # Sub-tab untuk analisis lanjutan
+        sub_tab1, sub_tab2 = st.tabs(['📊 Tren & Proporsi', '🔍 Korelasi & Perbandingan'])
+        
+        with sub_tab1:
+            col_left, col_right = st.columns(2)
+            
+            with col_left:
+                st.markdown('**📈 Tren Bulanan**')
+                monthly_trend = day_df_filtered.groupby(['yr', 'mnth'])['cnt'].sum().reset_index()
+                
+                fig_trend, ax_trend = plt.subplots(figsize=(8, 5))
+                
+                for year in monthly_trend['yr'].unique():
+                    year_data = monthly_trend[monthly_trend['yr'] == year]
+                    ax_trend.plot(year_data['mnth'], year_data['cnt'], 
+                                 marker='o', linewidth=2, label=f'Tahun {year}', markersize=6)
+                
+                ax_trend.set_title('Tren Penyewaan Bulanan', fontsize=14, fontweight='bold')
+                ax_trend.set_xlabel('Bulan')
+                ax_trend.set_ylabel('Total Penyewaan')
+                ax_trend.set_xticks(range(1, 13))
+                ax_trend.set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
+                                         'Jul','Agu','Sep','Okt','Nov','Des'])
+                ax_trend.legend()
+                ax_trend.grid(alpha=0.3)
+                plt.tight_layout()
+                st.pyplot(fig_trend)
+                plt.close(fig_trend)
+            
+            with col_right:
+                st.markdown('**🥧 Proporsi Pengguna**')
+                casual_total = day_df_filtered['casual'].sum()
+                registered_total = day_df_filtered['registered'].sum()
+                
+                fig_pie, ax_pie = plt.subplots(figsize=(8, 5))
+                ax_pie.pie(
+                    [casual_total, registered_total],
+                    labels=['Casual', 'Registered'],
+                    autopct='%1.1f%%',
+                    colors=['#FFC107', '#4CAF50'],
+                    startangle=90,
+                    explode=(0.05, 0)
+                )
+                ax_pie.set_title('Proporsi Pengguna: Casual vs Registered', fontsize=14, fontweight='bold')
+                plt.tight_layout()
+                st.pyplot(fig_pie)
+                plt.close(fig_pie)
+        
+        with sub_tab2:
+            col_left2, col_right2 = st.columns(2)
+            
+            with col_left2:
+                st.markdown('**💼 Hari Kerja vs Libur**')
+                workday_avg = day_df_filtered.groupby('workingday')['cnt'].mean()
+                workday_labels = ['Libur/Weekend', 'Hari Kerja']
+                
+                fig_workday, ax_workday = plt.subplots(figsize=(8, 5))
+                colors_workday = ['#AB47BC', '#26A69A']
+                bars = ax_workday.bar(workday_labels, workday_avg.values, color=colors_workday, 
+                                     edgecolor='black', linewidth=0.5, width=0.4)
+                ax_workday.set_title('Rata-rata Penyewaan: Hari Kerja vs Libur', fontsize=14, fontweight='bold')
+                ax_workday.set_xlabel('Tipe Hari')
+                ax_workday.set_ylabel('Rata-rata Penyewaan')
+                ax_workday.grid(axis='y', alpha=0.3)
+                
+                for i, (bar, v) in enumerate(zip(bars, workday_avg.values)):
+                    if not np.isnan(v):
+                        ax_workday.text(bar.get_x() + bar.get_width()/2., v + 30, 
+                                      f'{v:,.0f}', ha='center', fontsize=11, fontweight='bold')
+                
+                plt.tight_layout()
+                st.pyplot(fig_workday)
+                plt.close(fig_workday)
+            
+            with col_right2:
+                st.markdown('**🌡️ Korelasi Suhu vs Penyewaan**')
+                
+                fig_scatter, ax_scatter = plt.subplots(figsize=(8, 5))
+                
+                # Scatter plot
+                ax_scatter.scatter(
+                    day_df_filtered['temp'] * 41,
+                    day_df_filtered['cnt'],
+                    alpha=0.4,
+                    color='#FF7043',
+                    s=20,
+                    edgecolors='black',
+                    linewidth=0.3
+                )
+                
+                # Trendline
+                z = np.polyfit(day_df_filtered['temp'] * 41, day_df_filtered['cnt'], 1)
+                p = np.poly1d(z)
+                x_line = np.linspace((day_df_filtered['temp'] * 41).min(), 
+                                    (day_df_filtered['temp'] * 41).max(), 100)
+                ax_scatter.plot(x_line, p(x_line), color='#1565C0', linewidth=2, 
+                              label=f'Trendline (y={z[0]:.1f}x + {z[1]:.0f})')
+                
+                ax_scatter.set_title('Korelasi Suhu vs Jumlah Penyewaan', fontsize=14, fontweight='bold')
+                ax_scatter.set_xlabel('Suhu (°C)')
+                ax_scatter.set_ylabel('Jumlah Penyewaan')
+                ax_scatter.legend()
+                ax_scatter.grid(alpha=0.3)
+                
+                plt.tight_layout()
+                st.pyplot(fig_scatter)
+                plt.close(fig_scatter)
+        
+        # Tambahan: Download button
+        st.markdown('---')
+        st.markdown('**📥 Download Data Terfilter**')
+        
+        col_download1, col_download2 = st.columns(2)
+        with col_download1:
+            csv_day = day_df_filtered.to_csv(index=False)
+            st.download_button(
+                label='📥 Download Data Harian (CSV)',
+                data=csv_day,
+                file_name='bike_sharing_daily_filtered.csv',
+                mime='text/csv',
+                use_container_width=True
+            )
+        
+        with col_download2:
+            csv_hour = hour_df_filtered.to_csv(index=False)
+            st.download_button(
+                label='📥 Download Data Per Jam (CSV)',
+                data=csv_hour,
+                file_name='bike_sharing_hourly_filtered.csv',
+                mime='text/csv',
+                use_container_width=True
+            )
+
+# ── TAB 4: EKSPLORASI DATA ──
 with tab4:
-    st.markdown('<div class="section-header">Heatmap, Korelasi & Distribusi</div>', unsafe_allow_html=True)
+    st.subheader('📋 Eksplorasi Data')
+    
+    # Pilihan dataset
+    dataset_choice = st.radio(
+        'Pilih Dataset:',
+        ['Data Harian (day.csv)', 'Data Per Jam (hour.csv)'],
+        horizontal=True
+    )
+    
+    df_to_explore = day_df_filtered if 'Harian' in dataset_choice else hour_df_filtered
+    
+    if df_to_explore.empty:
+        st.warning('⚠️ Tidak ada data yang sesuai dengan filter terpilih. Silakan ubah filter.')
+    else:
+        # Data viewer dengan filter kolom
+        st.markdown('**🔍 Preview Data (Filtered)**')
+        
+        # Pilih kolom yang ingin ditampilkan
+        all_columns = df_to_explore.columns.tolist()
+        default_columns = ['dteday', 'season', 'weathersit', 'temp', 'cnt', 'casual', 'registered']
+        if 'hr' in all_columns:
+            default_columns.insert(1, 'hr')
+        
+        selected_columns = st.multiselect(
+            'Pilih kolom yang ingin ditampilkan:',
+            all_columns,
+            default=[col for col in default_columns if col in all_columns]
+        )
+        
+        # Slider untuk jumlah baris
+        n_rows = st.slider('Jumlah baris ditampilkan:', 5, 100, 20)
+        
+        if selected_columns:
+            st.dataframe(
+                df_to_explore[selected_columns].head(n_rows),
+                use_container_width=True,
+                hide_index=True
+            )
+        
+        st.markdown('---')
+        
+        # Statistik deskriptif
+        col_stat1, col_stat2 = st.columns(2)
+        
+        with col_stat1:
+            st.markdown('**📊 Statistik Deskriptif (Numerikal)**')
+            numerical_cols = df_to_explore.select_dtypes(include=[np.number]).columns
+            if len(numerical_cols) > 0:
+                st.dataframe(
+                    df_to_explore[numerical_cols].describe(),
+                    use_container_width=True
+                )
+            else:
+                st.info('Tidak ada kolom numerikal.')
+        
+        with col_stat2:
+            st.markdown('**📊 Distribusi Kategorikal**')
+            
+            cat_columns = ['season', 'weathersit', 'yr', 'mnth', 'holiday', 'weekday', 'workingday']
+            if 'hr' in df_to_explore.columns:
+                cat_columns.insert(3, 'hr')
+            
+            available_cat = [col for col in cat_columns if col in df_to_explore.columns]
+            
+            if available_cat:
+                selected_cat = st.selectbox('Pilih kolom kategorikal:', available_cat)
+                
+                dist = df_to_explore[selected_cat].value_counts().reset_index()
+                dist.columns = [selected_cat, 'count']
+                dist = dist.sort_values(by=selected_cat)
+                
+                fig_dist, ax_dist = plt.subplots(figsize=(10, 4))
+                ax_dist.bar(range(len(dist)), dist['count'], color='#42A5F5', edgecolor='black', linewidth=0.5)
+                ax_dist.set_xticks(range(len(dist)))
+                ax_dist.set_xticklabels(dist[selected_cat], rotation=45 if len(dist) > 10 else 0)
+                ax_dist.set_title(f'Distribusi {selected_cat}', fontsize=14, fontweight='bold')
+                ax_dist.set_ylabel('Count')
+                ax_dist.grid(axis='y', alpha=0.3)
+                
+                for i, v in enumerate(dist['count']):
+                    ax_dist.text(i, v + max(dist['count'])*0.01, str(v), ha='center', fontsize=9)
+                
+                plt.tight_layout()
+                st.pyplot(fig_dist)
+                plt.close(fig_dist)
+            else:
+                st.info('Tidak ada kolom kategorikal tersedia.')
+        
+        st.markdown('---')
+        
+        # Info data
+        st.markdown('**ℹ️ Informasi Dataset**')
+        col_info1, col_info2, col_info3 = st.columns(3)
+        
+        with col_info1:
+            st.metric('Jumlah Data (Filtered)', len(df_to_explore))
+            st.metric('Total Data (Keseluruhan)', len(day_df) if 'Harian' in dataset_choice else len(hour_df))
+        
+        with col_info2:
+            missing_data = df_to_explore.isnull().sum().sum()
+            duplicate_data = df_to_explore.duplicated().sum()
+            st.metric('Missing Values', missing_data)
+            st.metric('Duplicate Rows', duplicate_data)
+        
+        with col_info3:
+            if not df_to_explore.empty:
+                st.metric('Range Tanggal', 
+                         f"{df_to_explore['dteday'].min().strftime('%d %b %Y')} - {df_to_explore['dteday'].max().strftime('%d %b %Y')}")
+                st.metric('Total Kolom', len(df_to_explore.columns))
 
-    col_l, col_r = st.columns(2)
+# ── KESIMPULAN ──
+st.markdown('---')
+st.subheader('✅ Kesimpulan')
 
-    # Heatmap jam vs hari
-    with col_l:
-        if len(filtered_hour):
-            pivot_hm = filtered_hour.groupby(['weekday','hr'])['cnt'].mean().unstack()
-            pivot_hm.index = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][:len(pivot_hm)]
-            fig, ax   = plt.subplots(figsize=(10,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            im = ax.imshow(pivot_hm.values, aspect='auto', cmap='magma', interpolation='nearest')
-            ax.set_xticks(range(24))
-            ax.set_xticklabels(range(24), color=TEXT_COLOR, fontsize=8)
-            ax.set_yticks(range(len(pivot_hm.index)))
-            ax.set_yticklabels(pivot_hm.index, color=TEXT_COLOR, fontsize=10)
-            cbar = plt.colorbar(im, ax=ax)
-            cbar.ax.tick_params(colors=TEXT_COLOR)
-            cbar.set_label('Rata-rata Penyewaan', color=TEXT_COLOR)
-            ax.set_title('Heatmap: Jam vs Hari', color=TEXT_COLOR, fontsize=13, fontweight='600')
-            ax.set_xlabel('Jam', color=TEXT_COLOR)
-            ax.set_ylabel('Hari', color=TEXT_COLOR)
-            fig.patch.set_facecolor(CHART_BG)
-            st.pyplot(fig)
-            plt.close(fig)
+col_kesimpulan1, col_kesimpulan2 = st.columns(2)
 
-    # Scatter suhu vs penyewaan
-    with col_r:
-        if len(filtered_day):
-            temp_c = filtered_day['temp'] * 41
-            fig, ax = plt.subplots(figsize=(7,4.5))
-            fig.patch.set_facecolor(CHART_BG)
-            sc = ax.scatter(temp_c, filtered_day['cnt'],
-                           alpha=0.45, c=filtered_day['cnt'],
-                           cmap='plasma', s=18, edgecolors='none', zorder=3)
-            z  = np.polyfit(temp_c, filtered_day['cnt'], 1)
-            p  = np.poly1d(z)
-            x_ln = np.linspace(temp_c.min(), temp_c.max(), 200)
-            ax.plot(x_ln, p(x_ln), color=ACCENT3, linewidth=2.5, label='Trendline')
-            cbar = plt.colorbar(sc, ax=ax)
-            cbar.ax.tick_params(colors=TEXT_COLOR)
-            cbar.set_label('Jumlah Penyewaan', color=TEXT_COLOR)
-            style_ax(ax, 'Korelasi Suhu vs Penyewaan')
-            ax.set_xlabel('Suhu (°C)', color=TEXT_COLOR)
-            ax.set_ylabel('Jumlah Penyewaan', color=TEXT_COLOR)
-            ax.legend(facecolor=CHART_BG, labelcolor=TEXT_COLOR)
-            st.pyplot(fig)
-            plt.close(fig)
-
-    # Boxplot penyewaan per musim
-    if len(filtered_day):
-        st.markdown("#### Distribusi Penyewaan per Musim (Boxplot)")
-        season_order = [s for s in ['Spring','Summer','Fall','Winter']
-                       if s in filtered_day['season'].unique()]
-        data_box = [filtered_day[filtered_day['season']==s]['cnt'].values for s in season_order]
-        fig, ax  = plt.subplots(figsize=(10,4.5))
-        fig.patch.set_facecolor(CHART_BG)
-        bp = ax.boxplot(data_box, labels=season_order, patch_artist=True,
-                       medianprops=dict(color='white', linewidth=2))
-        clrs_box = [ACCENT3, ACCENT4, ACCENT2, ACCENT1]
-        for patch, c in zip(bp['boxes'], clrs_box[:len(data_box)]):
-            patch.set_facecolor(c)
-            patch.set_alpha(0.75)
-        for element in ['whiskers','caps','fliers']:
-            for item in bp[element]:
-                item.set_color(GRID_COLOR)
-        style_ax(ax, 'Distribusi Penyewaan per Musim')
-        ax.set_xlabel('Musim', color=TEXT_COLOR)
-        ax.set_ylabel('Jumlah Penyewaan', color=TEXT_COLOR)
-        st.pyplot(fig)
-        plt.close(fig)
-
-    # Hari kerja vs libur
-    if len(filtered_day):
-        st.markdown("#### Rata-rata Penyewaan: Hari Kerja vs Libur")
-        workday_avg = filtered_day.groupby('workingday')['cnt'].mean()
-        workday_avg.index = workday_avg.index.map({0:'Libur/Weekend', 1:'Hari Kerja'})
-        fig, ax = plt.subplots(figsize=(6,4))
-        fig.patch.set_facecolor(CHART_BG)
-        bars = ax.bar(workday_avg.index, workday_avg.values,
-                     color=[ACCENT2, ACCENT3], width=0.4, edgecolor='none', zorder=3)
-        for bar, v in zip(bars, workday_avg.values):
-            ax.text(bar.get_x()+bar.get_width()/2, v+30, f'{v:,.0f}',
-                   ha='center', color=TEXT_COLOR, fontsize=11, fontweight='600')
-        style_ax(ax, 'Hari Kerja vs Libur/Weekend')
-        ax.set_ylabel('Rata-rata Penyewaan', color=TEXT_COLOR)
-        st.pyplot(fig)
-        plt.close(fig)
-
-# ──────────────────────────────
-# TAB 5 — Kesimpulan
-# ──────────────────────────────
-with tab5:
-    st.markdown('<div class="section-header">✅ Kesimpulan & Rekomendasi Bisnis</div>', unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        <div style="background:linear-gradient(135deg,#1e2030,#252840);border-radius:16px;
-                    padding:24px;border:1px solid #3d4166">
-            <div style="color:#6366f1;font-size:16px;font-weight:700;margin-bottom:12px">
-                📊 Pertanyaan 1 — Musim & Cuaca
-            </div>
-            <ul style="color:#c5c8e6;line-height:2;font-size:14px">
-                <li><b>Musim Fall</b> dan <b>cuaca Clear</b> secara konsisten menghasilkan penyewaan tertinggi sepanjang 2011–2012.</li>
-                <li>Kondisi cuaca buruk (<b>Light Rain/Snow</b>) menurunkan penyewaan hingga <b>63%</b> dibanding cuaca Clear.</li>
-            </ul>
-            <div style="color:#f59e0b;font-size:13px;margin-top:12px;font-weight:600">⚡ Rekomendasi Bisnis:</div>
-            <ul style="color:#c5c8e6;line-height:2;font-size:13px">
-                <li>Tingkatkan armada di <b>musim Fall</b> dengan cuaca cerah.</li>
-                <li>Kurangi operasional saat <b>cuaca buruk</b> untuk efisiensi biaya.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c2:
-        st.markdown("""
-        <div style="background:linear-gradient(135deg,#1e2030,#252840);border-radius:16px;
-                    padding:24px;border:1px solid #3d4166">
-            <div style="color:#ec4899;font-size:16px;font-weight:700;margin-bottom:12px">
-                ⏰ Pertanyaan 2 — Jam & Hari
-            </div>
-            <ul style="color:#c5c8e6;line-height:2;font-size:14px">
-                <li>Penyewaan memuncak pukul <b>08:00</b> dan <b>17:00–18:00</b> — pola <b>komuter</b>.</li>
-                <li><b>Hari Jumat</b> mencatat penyewaan tertinggi dalam seminggu.</li>
-            </ul>
-            <div style="color:#f59e0b;font-size:13px;margin-top:12px;font-weight:600">⚡ Rekomendasi Bisnis:</div>
-            <ul style="color:#c5c8e6;line-height:2;font-size:13px">
-                <li>Prioritaskan ketersediaan sepeda di <b>stasiun & perkantoran</b> pada jam sibuk.</li>
-                <li>Siapkan <b>armada tambahan</b> untuk lonjakan permintaan jam 08:00 & 17:00.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Summary stats dari data terfilter
-    if len(filtered_day):
-        st.markdown("#### 📋 Ringkasan Statistik (Data Terfilter)")
-        summary = filtered_day[['cnt','casual','registered','temp','hum','windspeed']].describe().T
-        summary.columns = ['Count','Mean','Std','Min','25%','50%','75%','Max']
-        st.dataframe(summary.style
-                    .format("{:.1f}")
-                    .background_gradient(cmap='Blues', subset=['Mean','Max']),
-                    use_container_width=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
+with col_kesimpulan1:
+    st.markdown('**Pertanyaan 1: Musim & Cuaca**')
     st.markdown("""
-    <div style="text-align:center;color:#8b8fa8;font-size:13px;font-family:'DM Mono',monospace">
-        Sumber: Bike Sharing Dataset — Capital Bikeshare, Washington D.C.<br>
-        <b style="color:#6366f1">Arel Lafito Dinoris</b> · areldinoris23@gmail.com · areldinoris
-    </div>
-    """, unsafe_allow_html=True)
+    - **Musim Fall** dan **cuaca Clear** secara konsisten menghasilkan jumlah penyewaan tertinggi sepanjang 2011–2012.
+    - Kondisi cuaca buruk (**Light Rain/Snow**) terbukti menurunkan penyewaan secara drastis hingga **63%** dibanding cuaca Clear.
+    
+    **Rekomendasi bisnis:**
+    - Tingkatkan ketersediaan armada sepeda di **musim Fall** dengan cuaca cerah.
+    - Kurangi operasional saat **cuaca buruk** untuk efisiensi biaya.
+    """)
+
+with col_kesimpulan2:
+    st.markdown('**Pertanyaan 2: Jam & Hari**')
+    st.markdown("""
+    - Penyewaan memuncak pada pukul **08.00** dan **17.00–18.00** yang mencerminkan pola penggunaan sepeda sebagai moda transportasi **komuter**.
+    - **Hari Jumat** mencatat penyewaan tertinggi dalam seminggu.
+    
+    **Rekomendasi bisnis:**
+    - Prioritaskan ketersediaan sepeda di **titik-titik strategis** (stasiun, perkantoran) pada jam dan hari tersebut.
+    - Siapkan armada tambahan untuk mengakomodasi lonjakan permintaan di jam sibuk.
+    """)
+
+st.markdown('---')
+st.caption('Sumber: Bike Sharing Dataset — Capital Bikeshare, Washington D.C. | Arel Lafito Dinoris')
