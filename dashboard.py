@@ -15,29 +15,46 @@ day_df['dteday'] = pd.to_datetime(day_df['dteday'])
 hour_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'hour.csv'))
 hour_df['dteday'] = pd.to_datetime(hour_df['dteday'])
 
-# ── Mapping hour_df (sama persis dengan kode asli) ──
-hour_df['season'] = hour_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
-hour_df['weathersit'] = hour_df['weathersit'].map({
-    1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
-})
-hour_df['yr'] = hour_df['yr'].map({0: 2011, 1: 2012})
+# ── Deteksi format kolom yr secara otomatis ──
+# hour_df yr: bisa 0/1 atau sudah 2011/2012
+if hour_df['yr'].max() <= 1:
+    hour_df['yr'] = hour_df['yr'].map({0: 2011, 1: 2012})
+# else: sudah 2011/2012, tidak perlu diubah
 
-# ── Kolom bantu day_df — LANGSUNG buat label sebelum filter ──
-# (day_df['season'] dan ['weathersit'] ASLINYA masih angka)
-day_df['yr_label']      = day_df['yr'].map({0: 2011, 1: 2012})
-day_df['season_label']  = day_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
-day_df['weather_label'] = day_df['weathersit'].map({
-    1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
-})
+# ── Mapping season & weathersit hour_df ──
+if hour_df['season'].dtype != object:
+    hour_df['season'] = hour_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
+if hour_df['weathersit'].dtype != object:
+    hour_df['weathersit'] = hour_df['weathersit'].map({
+        1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
+    })
+
+# ── Kolom bantu day_df ──
+# Deteksi yr day_df: bisa 0/1 atau 2011/2012
+if day_df['yr'].max() <= 1:
+    day_df['yr_label'] = day_df['yr'].map({0: 2011, 1: 2012})
+else:
+    day_df['yr_label'] = day_df['yr']  # sudah 2011/2012
+
+# Deteksi season day_df: bisa angka atau sudah string
+if day_df['season'].dtype == object:
+    day_df['season_label'] = day_df['season']
+else:
+    day_df['season_label'] = day_df['season'].map({1:'Spring', 2:'Summer', 3:'Fall', 4:'Winter'})
+
+# Deteksi weathersit day_df: bisa angka atau sudah string
+if day_df['weathersit'].dtype == object:
+    day_df['weather_label'] = day_df['weathersit']
+else:
+    day_df['weather_label'] = day_df['weathersit'].map({
+        1:'Clear', 2:'Mist', 3:'Light Rain/Snow', 4:'Heavy Rain/Snow'
+    })
 
 # =====================================================
 # PAGE CONFIG
 # =====================================================
 st.set_page_config(page_title="Bike Sharing Dashboard", page_icon="🚴", layout="wide")
 
-# =====================================================
-# CUSTOM CSS
-# =====================================================
 st.markdown("""
 <style>
     .main-header {
@@ -61,13 +78,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =====================================================
-# SIDEBAR — SEMUA FILTER
+# SIDEBAR FILTERS
 # =====================================================
 st.sidebar.markdown("## 🔎 Dashboard Filters")
 st.sidebar.markdown("---")
 
-year_options   = sorted(day_df['yr_label'].dropna().unique().tolist())
-season_options = ['Spring', 'Summer', 'Fall', 'Winter']
+year_options    = sorted(day_df['yr_label'].dropna().unique().tolist())
+season_options  = ['Spring', 'Summer', 'Fall', 'Winter']
 weather_options = ['Clear', 'Mist', 'Light Rain/Snow', 'Heavy Rain/Snow']
 
 year_filter = st.sidebar.multiselect(
@@ -97,8 +114,6 @@ st.sidebar.markdown("areldinoris23@gmail.com | ID: areldinoris")
 # =====================================================
 # APPLY FILTERS
 # =====================================================
-
-# — filtered_day —
 if len(date_range) == 2:
     filtered_day = day_df[
         (day_df['dteday'] >= pd.to_datetime(date_range[0])) &
@@ -107,7 +122,6 @@ if len(date_range) == 2:
 else:
     filtered_day = day_df.copy()
 
-# filter pakai kolom label (string) bukan angka
 filtered_day = filtered_day[
     (filtered_day['yr_label'].isin(year_filter)) &
     (filtered_day['season_label'].isin(season_filter)) &
@@ -118,7 +132,6 @@ if workingday_filter == "Hari Kerja":
 elif workingday_filter == "Libur/Weekend":
     filtered_day = filtered_day[filtered_day['workingday'] == 0]
 
-# — filtered_hour —
 filtered_hour = hour_df[
     (hour_df['yr'].isin(year_filter)) &
     (hour_df['season'].isin(season_filter)) &
@@ -144,10 +157,10 @@ st.markdown("""
 # =====================================================
 # KPI METRICS
 # =====================================================
-total_filt   = int(filtered_day['cnt'].sum())   if len(filtered_day) > 0 else 0
-highest_filt = int(filtered_day['cnt'].max())   if len(filtered_day) > 0 else 0
-avg_day_filt = filtered_day['cnt'].mean()        if len(filtered_day) > 0 else 0
-avg_hr_filt  = filtered_hour['cnt'].mean()       if len(filtered_hour) > 0 else 0
+total_filt   = int(filtered_day['cnt'].sum())  if len(filtered_day) > 0 else 0
+highest_filt = int(filtered_day['cnt'].max())  if len(filtered_day) > 0 else 0
+avg_day_filt = filtered_day['cnt'].mean()       if len(filtered_day) > 0 else 0
+avg_hr_filt  = filtered_hour['cnt'].mean()      if len(filtered_hour) > 0 else 0
 
 total_all    = int(day_df['cnt'].sum())
 avg_day_all  = day_df['cnt'].mean()
@@ -221,14 +234,12 @@ with tab1:
         plt.close(fig)
 
         col_a, col_b = st.columns(2)
-
         with col_a:
             st.markdown("**Total Penyewaan per Tahun**")
             yearly = filtered_day.groupby('yr_label')['cnt'].sum()
             fig2, ax2 = plt.subplots(figsize=(5, 3.5))
-            bar_colors = ['#42A5F5', '#EF5350'][:len(yearly)]
             bars = ax2.bar(yearly.index.astype(str), yearly.values,
-                           color=bar_colors, width=0.4)
+                           color=['#42A5F5','#EF5350'][:len(yearly)], width=0.4)
             ax2.set_title("Total Penyewaan per Tahun", fontsize=12)
             ax2.set_ylabel("Total")
             ax2.grid(alpha=0.3, axis='y')
@@ -241,14 +252,10 @@ with tab1:
 
         with col_b:
             st.markdown("**Distribusi Tipe Pengguna**")
-            casual_t     = filtered_day['casual'].sum()
-            registered_t = filtered_day['registered'].sum()
             fig3, ax3 = plt.subplots(figsize=(5, 3.5))
-            ax3.pie([casual_t, registered_t],
-                    labels=['Casual', 'Registered'],
-                    autopct='%1.1f%%',
-                    colors=['#FFC107', '#4CAF50'],
-                    startangle=90, explode=(0.05, 0))
+            ax3.pie([filtered_day['casual'].sum(), filtered_day['registered'].sum()],
+                    labels=['Casual','Registered'], autopct='%1.1f%%',
+                    colors=['#FFC107','#4CAF50'], startangle=90, explode=(0.05,0))
             ax3.set_title("Proporsi Pengguna", fontsize=12)
             plt.tight_layout()
             st.pyplot(fig3)
@@ -263,22 +270,15 @@ with tab2:
     if len(filtered_day) == 0:
         st.warning("⚠️ Tidak ada data untuk filter yang dipilih.")
     else:
-        chart_type = st.radio(
-            "Tipe Visualisasi",
-            ["Bar Chart", "Line Chart"],
-            horizontal=True, key="chart_tab2"
-        )
+        chart_type = st.radio("Tipe Visualisasi", ["Bar Chart","Line Chart"],
+                              horizontal=True, key="chart_tab2")
 
         fig1, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-        # Plot Musim — pakai season_label dari filtered_day
-        season_order = ['Spring', 'Summer', 'Fall', 'Winter']
-        season_avg = (filtered_day
-                      .groupby('season_label')['cnt']
-                      .mean()
-                      .reindex(season_order)
-                      .dropna())
-        colors_s = ['#4CAF50', '#FFC107', '#F44336', '#2196F3'][:len(season_avg)]
+        season_order = ['Spring','Summer','Fall','Winter']
+        season_avg = (filtered_day.groupby('season_label')['cnt']
+                      .mean().reindex(season_order).dropna())
+        colors_s = ['#4CAF50','#FFC107','#F44336','#2196F3'][:len(season_avg)]
 
         if chart_type == "Bar Chart":
             axes[0].bar(season_avg.index, season_avg.values, color=colors_s)
@@ -294,12 +294,8 @@ with tab2:
         axes[0].set_ylabel('Rata-rata Penyewaan')
         axes[0].grid(alpha=0.3)
 
-        # Plot Cuaca — pakai weather_label dari filtered_day
-        weather_avg = (filtered_day
-                       .groupby('weather_label')['cnt']
-                       .mean()
-                       .sort_values(ascending=False))
-
+        weather_avg = (filtered_day.groupby('weather_label')['cnt']
+                       .mean().sort_values(ascending=False))
         if chart_type == "Bar Chart":
             axes[1].bar(range(len(weather_avg)), weather_avg.values, color='#42A5F5')
             axes[1].set_xticks(range(len(weather_avg)))
@@ -322,13 +318,10 @@ with tab2:
 
         st.info("💡 Visualisasi musim dan cuaca mengkonfirmasi bahwa Fall + Clear weather adalah kombinasi terbaik untuk penyewaan sepeda. Cuaca Light Rain/Snow menyebabkan penurunan penyewaan hingga 63% dibanding cuaca Clear.")
 
-        # Heatmap Musim × Cuaca
         st.markdown("**Heatmap: Musim × Cuaca**")
         heatmap_data = (filtered_day
-                        .groupby(['season_label', 'weather_label'])['cnt']
-                        .mean()
-                        .unstack(fill_value=0))
-
+                        .groupby(['season_label','weather_label'])['cnt']
+                        .mean().unstack(fill_value=0))
         if heatmap_data.shape[0] > 0 and heatmap_data.shape[1] > 0:
             fig3, ax3 = plt.subplots(figsize=(10, 4))
             im = ax3.imshow(heatmap_data.values, cmap='YlOrRd', aspect='auto')
@@ -371,7 +364,7 @@ with tab3:
         axes2[0].legend()
         axes2[0].grid(alpha=0.3)
 
-        day_map     = {0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat'}
+        day_map     = {0:'Sun',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'}
         weekday_avg = filtered_hour.groupby('weekday')['cnt'].mean().rename(index=day_map)
         axes2[1].bar(weekday_avg.index, weekday_avg.values,
                      color=['#AB47BC' if d not in ['Sat','Sun'] else '#26A69A'
@@ -391,11 +384,9 @@ with tab3:
 
         st.markdown("---")
         st.markdown("**Pola Penyewaan per Jam: Hari Kerja vs Libur/Weekend**")
-
         workday_hour = (filtered_hour
-                        .groupby(['workingday', 'hr'])['cnt']
-                        .mean()
-                        .unstack(level=0))
+                        .groupby(['workingday','hr'])['cnt']
+                        .mean().unstack(level=0))
         workday_hour.columns = [
             'Libur/Weekend' if c == 0 else 'Hari Kerja'
             for c in workday_hour.columns
@@ -459,61 +450,54 @@ with tab4:
         fig3, axes3 = plt.subplots(2, 2, figsize=(16, 12))
 
         # 1. Tren bulanan 2011 vs 2012
-        monthly_trend = filtered_day.groupby(['yr_label', 'mnth'])['cnt'].sum().reset_index()
+        monthly_trend = filtered_day.groupby(['yr_label','mnth'])['cnt'].sum().reset_index()
         pivot_trend   = monthly_trend.pivot(index='mnth', columns='yr_label', values='cnt')
         if 2011 in pivot_trend.columns:
-            axes3[0, 0].plot(pivot_trend.index, pivot_trend[2011],
-                             marker='o', label='2011', color='#42A5F5', linewidth=2)
+            axes3[0,0].plot(pivot_trend.index, pivot_trend[2011],
+                            marker='o', label='2011', color='#42A5F5', linewidth=2)
         if 2012 in pivot_trend.columns:
-            axes3[0, 0].plot(pivot_trend.index, pivot_trend[2012],
-                             marker='o', label='2012', color='#EF5350', linewidth=2)
-        axes3[0, 0].set_title('Tren Penyewaan Bulanan: 2011 vs 2012', fontsize=13)
-        axes3[0, 0].set_xlabel('Bulan')
-        axes3[0, 0].set_ylabel('Total Penyewaan')
-        axes3[0, 0].set_xticks(range(1, 13))
-        axes3[0, 0].set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
-                                     'Jul','Agu','Sep','Okt','Nov','Des'])
-        axes3[0, 0].legend()
-        axes3[0, 0].grid(alpha=0.3)
+            axes3[0,0].plot(pivot_trend.index, pivot_trend[2012],
+                            marker='o', label='2012', color='#EF5350', linewidth=2)
+        axes3[0,0].set_title('Tren Penyewaan Bulanan: 2011 vs 2012', fontsize=13)
+        axes3[0,0].set_xlabel('Bulan')
+        axes3[0,0].set_ylabel('Total Penyewaan')
+        axes3[0,0].set_xticks(range(1,13))
+        axes3[0,0].set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
+                                    'Jul','Agu','Sep','Okt','Nov','Des'])
+        axes3[0,0].legend()
+        axes3[0,0].grid(alpha=0.3)
 
-        # 2. Pie Casual vs Registered
-        axes3[0, 1].pie(
-            [casual_total, registered_total],
-            labels=['Casual', 'Registered'],
-            autopct='%1.1f%%',
-            colors=['#FFC107', '#4CAF50'],
-            startangle=90, explode=(0.05, 0)
-        )
-        axes3[0, 1].set_title('Proporsi Pengguna: Casual vs Registered', fontsize=13)
+        # 2. Pie
+        axes3[0,1].pie([casual_total, registered_total],
+                       labels=['Casual','Registered'], autopct='%1.1f%%',
+                       colors=['#FFC107','#4CAF50'], startangle=90, explode=(0.05,0))
+        axes3[0,1].set_title('Proporsi Pengguna: Casual vs Registered', fontsize=13)
 
         # 3. Hari Kerja vs Libur
         workday_avg = filtered_day.groupby('workingday')['cnt'].mean()
-        workday_avg.index = workday_avg.index.map({0: 'Libur/Weekend', 1: 'Hari Kerja'})
-        axes3[1, 0].bar(workday_avg.index, workday_avg.values,
-                        color=['#AB47BC', '#26A69A'], width=0.4)
-        axes3[1, 0].set_title('Rata-rata Penyewaan: Hari Kerja vs Libur', fontsize=13)
-        axes3[1, 0].set_xlabel('Tipe Hari')
-        axes3[1, 0].set_ylabel('Rata-rata Penyewaan')
-        axes3[1, 0].grid(alpha=0.3, axis='y')
+        workday_avg.index = workday_avg.index.map({0:'Libur/Weekend', 1:'Hari Kerja'})
+        axes3[1,0].bar(workday_avg.index, workday_avg.values,
+                       color=['#AB47BC','#26A69A'], width=0.4)
+        axes3[1,0].set_title('Rata-rata Penyewaan: Hari Kerja vs Libur', fontsize=13)
+        axes3[1,0].set_xlabel('Tipe Hari')
+        axes3[1,0].set_ylabel('Rata-rata Penyewaan')
+        axes3[1,0].grid(alpha=0.3, axis='y')
         for i, v in enumerate(workday_avg.values):
-            axes3[1, 0].text(i, v + 30, str(round(v)), ha='center', fontsize=11)
+            axes3[1,0].text(i, v + 30, str(round(v)), ha='center', fontsize=11)
 
-        # 4. Korelasi Suhu vs Penyewaan
-        axes3[1, 1].scatter(
-            filtered_day['temp'] * 41,
-            filtered_day['cnt'],
-            alpha=0.4, color='#FF7043', s=20
-        )
-        z      = np.polyfit(filtered_day['temp'] * 41, filtered_day['cnt'], 1)
+        # 4. Suhu vs Penyewaan
+        axes3[1,1].scatter(filtered_day['temp']*41, filtered_day['cnt'],
+                           alpha=0.4, color='#FF7043', s=20)
+        z      = np.polyfit(filtered_day['temp']*41, filtered_day['cnt'], 1)
         p_line = np.poly1d(z)
         x_line = np.linspace((filtered_day['temp']*41).min(),
                               (filtered_day['temp']*41).max(), 100)
-        axes3[1, 1].plot(x_line, p_line(x_line), color='#1565C0', linewidth=2, label='Trendline')
-        axes3[1, 1].set_title('Korelasi Suhu vs Jumlah Penyewaan', fontsize=13)
-        axes3[1, 1].set_xlabel('Suhu (°C)')
-        axes3[1, 1].set_ylabel('Jumlah Penyewaan')
-        axes3[1, 1].legend()
-        axes3[1, 1].grid(alpha=0.3)
+        axes3[1,1].plot(x_line, p_line(x_line), color='#1565C0', linewidth=2, label='Trendline')
+        axes3[1,1].set_title('Korelasi Suhu vs Jumlah Penyewaan', fontsize=13)
+        axes3[1,1].set_xlabel('Suhu (°C)')
+        axes3[1,1].set_ylabel('Jumlah Penyewaan')
+        axes3[1,1].legend()
+        axes3[1,1].grid(alpha=0.3)
 
         plt.tight_layout()
         st.pyplot(fig3)
@@ -532,7 +516,7 @@ with tab4:
         ax4.set_title("Tren Bulanan Casual vs Registered", fontsize=13, fontweight='bold')
         ax4.set_xlabel("Bulan")
         ax4.set_ylabel("Total Penyewaan")
-        ax4.set_xticks(range(1, 13))
+        ax4.set_xticks(range(1,13))
         ax4.set_xticklabels(['Jan','Feb','Mar','Apr','Mei','Jun',
                              'Jul','Agu','Sep','Okt','Nov','Des'])
         ax4.legend()
@@ -548,7 +532,6 @@ with tab5:
     st.subheader("✅ Kesimpulan")
 
     col_kesimpulan1, col_kesimpulan2 = st.columns(2)
-
     with col_kesimpulan1:
         st.markdown("**Pertanyaan 1**")
         st.markdown("""
